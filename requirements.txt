@@ -10,3 +10,4 @@ requests
 pytz
 logzero
 websocket
+xlsxwriter>=3.2.0

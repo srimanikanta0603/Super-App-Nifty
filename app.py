@@ -407,16 +407,18 @@ if page == "Home & Rules":
         st.markdown('<div class="panel"><div class="panel-h">Risk Planner</div><div class="panel-sub">Validate risk before placing orders (Max 18 pts)</div>', unsafe_allow_html=True)
         qc1, qc2, qc3 = st.columns(3)
         with qc1:
-            h_entry = st.number_input("Entry Price (INR)", min_value=1.0, value=150.0, step=0.5, key="h_entry")
+            h_entry = st.number_input("Entry Price (INR)", min_value=0.0, value=0.0, step=0.5, key="h_entry")
         with qc2:
-            h_sl = st.number_input("Stop Loss (INR)", min_value=0.5, value=135.0, step=0.5, key="h_sl")
+            h_sl = st.number_input("Stop Loss (INR)", min_value=0.0, value=0.0, step=0.5, key="h_sl")
         with qc3:
             h_lots = st.number_input("Lots (65 Qty)", min_value=1, value=1, key="h_lots")
 
         risk_pts = round(h_entry - h_sl, 2)
         qty = h_lots * 65
 
-        if risk_pts <= 0:
+        if h_entry == 0.0 or h_sl == 0.0:
+            st.info("Enter Entry Price and Stop Loss above to calculate target grid and risk parameters.")
+        elif risk_pts <= 0:
             st.warning("Stop loss must be lower than entry price.")
         elif risk_pts > 18.0:
             st.markdown(f"""
@@ -511,17 +513,19 @@ elif page == "Option Buying":
 
         bc1, bc2, bc3 = st.columns(3)
         with bc1:
-            b_entry = st.number_input("Entry Price (INR)", min_value=1.0, value=150.0, step=0.5, key="b_entry")
+            b_entry = st.number_input("Entry Price (INR)", min_value=0.0, value=0.0, step=0.5, key="b_entry")
             b_dir   = st.selectbox("Direction", ["BUY CE (Long)", "BUY PE (Short)"], key="b_dir")
         with bc2:
-            b_sl    = st.number_input("Stop Loss (INR)", min_value=0.5, value=135.0, step=0.5, key="b_sl")
+            b_sl    = st.number_input("Stop Loss (INR)", min_value=0.0, value=0.0, step=0.5, key="b_sl")
         with bc3:
             b_lots  = st.number_input("Lots (65 Qty)", min_value=1, value=1, key="b_lots")
 
         risk = round(b_entry - b_sl, 2)
         qty  = b_lots * 65
 
-        if risk <= 0:
+        if b_entry == 0.0 or b_sl == 0.0:
+            st.info("Enter Entry Price and Stop Loss above to calculate target grid and risk parameters.")
+        elif risk <= 0:
             st.warning("Stop loss must be lower than entry price.")
         elif risk > 18.0:
             st.markdown(f"""
@@ -610,35 +614,38 @@ elif page == "Option Selling":
 
         sc1, sc2, sc3 = st.columns(3)
         with sc1:
-            s_entry = st.number_input("Entry Premium (INR)", min_value=1.0, value=100.0, step=0.5, key="s_entry")
+            s_entry = st.number_input("Entry Premium (INR)", min_value=0.0, value=0.0, step=0.5, key="s_entry")
         with sc2:
             s_pct   = st.number_input("SL Percentage (%)", min_value=1.0, max_value=200.0, value=30.0, step=1.0)
         with sc3:
             s_lots  = st.number_input("Lots (65 Qty)", min_value=1, value=1, key="s_lots")
 
-        sl_price  = round(s_entry * (1 + s_pct / 100), 2)
-        sl_pts    = round(sl_price - s_entry, 2)
-        max_loss  = round(sl_pts * s_lots * 65, 2)
+        if s_entry == 0.0:
+            st.info("Enter Entry Premium above to calculate stop-loss trigger price and max risk.")
+        else:
+            sl_price  = round(s_entry * (1 + s_pct / 100), 2)
+            sl_pts    = round(sl_price - s_entry, 2)
+            max_loss  = round(sl_pts * s_lots * 65, 2)
 
-        st.markdown(f"""
-        <div class="kpi-grid" style="margin-top: 1rem;">
-          <div class="kpi-card kpi-card-negative">
-            <div class="kpi-lbl">SL Trigger Price</div>
-            <div class="kpi-val">INR {sl_price}</div>
-            <div class="kpi-sub">{s_pct}% above entry</div>
-          </div>
-          <div class="kpi-card kpi-card-accent">
-            <div class="kpi-lbl">Risk in Points</div>
-            <div class="kpi-val">+{sl_pts} pts</div>
-            <div class="kpi-sub">per quantity</div>
-          </div>
-          <div class="kpi-card kpi-card-neutral">
-            <div class="kpi-lbl">Max Loss</div>
-            <div class="kpi-val">INR {max_loss:,.2f}</div>
-            <div class="kpi-sub">{s_lots} Lot ({s_lots*65} Qty)</div>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="kpi-grid" style="margin-top: 1rem;">
+              <div class="kpi-card kpi-card-negative">
+                <div class="kpi-lbl">SL Trigger Price</div>
+                <div class="kpi-val">INR {sl_price}</div>
+                <div class="kpi-sub">{s_pct}% above entry</div>
+              </div>
+              <div class="kpi-card kpi-card-accent">
+                <div class="kpi-lbl">Risk in Points</div>
+                <div class="kpi-val">+{sl_pts} pts</div>
+                <div class="kpi-sub">per quantity</div>
+              </div>
+              <div class="kpi-card kpi-card-neutral">
+                <div class="kpi-lbl">Max Loss</div>
+                <div class="kpi-val">INR {max_loss:,.2f}</div>
+                <div class="kpi-sub">{s_lots} Lot ({s_lots*65} Qty)</div>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_r:

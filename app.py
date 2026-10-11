@@ -159,6 +159,34 @@ section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checke
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
 }
 
+/* Catalyst Cards */
+.catalyst-grid { display: grid; gap: 0.85rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 0.5rem; }
+.catalyst-card {
+  border-radius: 12px; padding: 16px; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.85rem; border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+.cat-type { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.cat-title { font-size: 1rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.2rem; }
+.cat-meta { display: flex; gap: 1rem; color: var(--text-dim); font-size: 0.78rem; font-weight: 500; }
+.cat-meta b { color: var(--text-muted); }
+
+/* Catalyst Color Variations */
+.cat-high { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); }
+.cat-high .cat-type { color: var(--danger); }
+
+.cat-med { border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.2); }
+.cat-med .cat-type { color: var(--warning); }
+
+.cat-low { border-left: 4px solid var(--cyan); background: rgba(6, 182, 212, 0.04); border-color: rgba(6, 182, 212, 0.2); }
+.cat-low .cat-type { color: var(--cyan); }
+
+.cat-earn { border-left: 4px solid var(--primary); background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.2); }
+.cat-earn .cat-type { color: var(--primary); }
+
+.cat-empty { background: rgba(16, 185, 129, 0.05); border: 1px dashed var(--success); color: var(--success); text-align: center; padding: 16px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; }
+
+
 /* Target Grid Table */
 .data-table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
 .data-table-custom th {
@@ -344,12 +372,34 @@ if page == "Home & Rules":
     today_re = df_re[df_re["Date"] == today_iso] if not df_re.empty and "Date" in df_re.columns else pd.DataFrame()
 
     if not today_ev.empty or not today_re.empty:
-        st.markdown('<div class="panel"><div class="panel-h">Today\'s Market Catalysts</div>', unsafe_allow_html=True)
+        st.markdown('<div class="panel" style="padding-bottom:12px;"><div class="panel-h">Today\'s Market Catalysts</div><div class="catalyst-grid">', unsafe_allow_html=True)
         for _, r in today_ev.iterrows():
-            st.markdown(f'<div class="alert-item"><span>Event: <b>{r.get("Event_Name","")}</b> &nbsp;·&nbsp; Country: {r.get("Country","")}</span><span class="badge-tag">TODAY</span></div>', unsafe_allow_html=True)
+            imp = str(r.get("Impact_Level", "MEDIUM")).upper()
+            c_class = "cat-high" if imp == "HIGH" else "cat-low" if imp == "LOW" else "cat-med"
+            st.markdown(f'''
+            <div class="catalyst-card {c_class}">
+              <div class="cat-type">{imp} IMPACT EVENT</div>
+              <div class="cat-title">{r.get("Event_Name","")}</div>
+              <div class="cat-meta">
+                <span>Time: <b>{r.get("Time","")}</b></span>
+                <span>Country: <b>{r.get("Country","")}</b></span>
+              </div>
+            </div>
+            ''', unsafe_allow_html=True)
+
         for _, r in today_re.iterrows():
-            st.markdown(f'<div class="alert-item"><span>Earnings: <b>{r.get("Company_Symbol","")}</b> &nbsp;·&nbsp; Timing: {r.get("Time","")}</span><span class="badge-tag">TODAY</span></div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="catalyst-card cat-earn">
+              <div class="cat-type">CORPORATE EARNINGS</div>
+              <div class="cat-title">{r.get("Company_Symbol","")}</div>
+              <div class="cat-meta">
+                <span>Timing: <b>{r.get("Time","")}</b></span>
+              </div>
+            </div>
+            ''', unsafe_allow_html=True)
+        st.markdown('</div></div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="panel"><div class="panel-h">Today\'s Market Catalysts</div><div class="cat-empty">No high-impact economic events or corporate earnings scheduled for today. Clear session.</div></div>', unsafe_allow_html=True)
 
     col_l, col_r = st.columns([1.1, 1], gap="large")
 
